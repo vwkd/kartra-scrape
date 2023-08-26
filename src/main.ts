@@ -1,7 +1,7 @@
 import "$std/dotenv/load.ts";
 
 import { join } from "$std/path/join.ts";
-import { makeRequestSameOrigin } from "./api.ts";
+import { makeRequest } from "./api.ts";
 import { parsePage, parseSitemap, parseTitle } from "./parse.ts";
 import { isSection, Sitemap } from "./types.ts";
 
@@ -12,6 +12,12 @@ const SITEMAP_PATH = "0";
 const OUTPUT_DIRECTORY = "out";
 const MARKDOWN_FILENAME = "text.md";
 
+const COURSE_URL = Deno.env.get("COURSE_URL");
+
+if (!COURSE_URL) {
+  throw new Error(`Missing env variables.`);
+}
+
 /**
  * Get index page
  *
@@ -20,7 +26,9 @@ const MARKDOWN_FILENAME = "text.md";
 async function getIndex(): Promise<string> {
   console.debug(`Get index...`);
 
-  const index = await makeRequestSameOrigin(INDEX_PATH);
+  const url = new URL(INDEX_PATH, COURSE_URL);
+
+  const index = await makeRequest(url.href);
 
   const title = parseTitle(index);
 
@@ -37,7 +45,9 @@ async function getIndex(): Promise<string> {
 async function getSitemap(): Promise<Sitemap> {
   console.debug(`Get sitemap...`);
 
-  const sitemap_html = await makeRequestSameOrigin(SITEMAP_PATH);
+  const url = new URL(SITEMAP_PATH, COURSE_URL);
+
+  const sitemap_html = await makeRequest(url.href);
 
   const sitemap = parseSitemap(sitemap_html);
 
@@ -47,13 +57,13 @@ async function getSitemap(): Promise<Sitemap> {
 /**
  * Get page
  *
- * @param path path string
+ * @param urlString url string
  * @returns markdown of page
  */
-async function getPage(path: string): Promise<string> {
+async function getPage(urlString: string): Promise<string> {
   console.debug(`Get page...`);
 
-  const index = await makeRequestSameOrigin(path);
+  const index = await makeRequest(urlString);
 
   const md = await parsePage(index);
 
