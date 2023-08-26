@@ -15,3 +15,7 @@ export interface Page {
   name: string;
   url: string;
 }
+
+export function isSection(value: Section | Page): value is Section {
+  return value.hasOwnProperty("children");
+}

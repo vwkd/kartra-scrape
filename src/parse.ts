@@ -9,6 +9,7 @@ import { downloadVideo, makeRequestCrossOrigin } from "./api.ts";
 import { stringPropertiesRegex, stringPropertyRegex } from "./utils.ts";
 import { Sitemap } from "./types.ts";
 
+const TITLE_SELECTOR = "head title";
 const PAGE_SELECTOR = "div.panel.panel-kartra";
 const SITEMAP_SELECTOR = "div.panel.panel-kartra.panel-sitemap";
 const IFRAME_SELECTOR = "iframe.video_iframe";
@@ -24,6 +25,20 @@ const html2md = unified()
     resourceLink: true,
     rule: "-",
   });
+
+/**
+ * Parse title
+ *
+ * @param html html string of page
+ * @returns title of page
+ */
+export function parseTitle(html: string) {
+  const doc = new DOMParser().parseFromString(html, "text/html")!;
+
+  const title = doc.querySelector(TITLE_SELECTOR);
+
+  return title.textContent;
+}
 
 /**
  * Parse page
