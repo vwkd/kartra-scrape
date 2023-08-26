@@ -10,7 +10,7 @@ import { stringPropertiesRegex, stringPropertyRegex } from "./utils.ts";
 import { Sitemap } from "./types.ts";
 
 const TITLE_SELECTOR = "head title";
-const PAGE_SELECTOR = "div.panel.panel-kartra";
+const PAGE_SELECTOR = "div.panel.panel-kartra div.panel-body";
 const SITEMAP_SELECTOR = "div.panel.panel-kartra.panel-sitemap";
 const IFRAME_SELECTOR = "iframe.video_iframe";
 
@@ -83,7 +83,7 @@ export async function parsePage(html: string) {
   const md = await html2md
     .process(div.outerHTML);
 
-  return md.toString();
+  return md.toString().trim();
 }
 
 /**

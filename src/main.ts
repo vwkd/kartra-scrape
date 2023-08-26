@@ -110,11 +110,15 @@ async function getPagesTree(
 
   for (const node of nodes) {
     if (isSection(node)) {
-      result.text += `\n\n${"#".repeat(level)} ${node.name}`;
+      result.text += `${level == 2 ? "\n\n\n\n" : "\n\n"}${
+        "#".repeat(level)
+      } ${node.name}`;
       await getPagesTree(node.children, result, level + 1);
     } else {
       const md = await getPage(node.url);
-      result.text += `\n\n${"#".repeat(level)} ${node.name}\n\n${md}`;
+      result.text += `${level == 2 ? "\n\n\n\n" : "\n\n"}${
+        "#".repeat(level)
+      } ${node.name}\n\n${md}`;
     }
   }
 }
@@ -128,7 +132,7 @@ if (import.meta.main) {
 
   const mdRest = await getPages(sitemap);
 
-  const md = `${md1}\n\n${mdRest}`;
+  const md = `${md1}\n${mdRest}`;
 
   await Deno.writeTextFile(filepath, md);
 }
