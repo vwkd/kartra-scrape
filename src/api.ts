@@ -8,6 +8,7 @@ const ACCESS_TOKEN_NAME = "lead_logged_in";
 
 const OUTPUT_DIRECTORY = "out";
 const VIDEO_SUBFOLDER = "video";
+const IMAGE_SUBFOLDER = "image";
 const TMP_DIRECTORY = "tmp";
 
 const ACCESS_TOKEN = Deno.env.get("ACCESS_TOKEN");
@@ -67,7 +68,7 @@ export async function makeRequest(urlString: string): Promise<string> {
 }
 
 /**
- * Download video and save
+ * Download file and save
  *
  * - skips if already exists
  * - beware: doesn't check if existing file is valid, e.g. incomplete!
@@ -75,13 +76,25 @@ export async function makeRequest(urlString: string): Promise<string> {
  * @param urlString
  * @returns filepath of downloaded file
  */
-export async function downloadVideo(urlString: string): Promise<string> {
-  console.debug(`Downloading video url '${urlString}' ...`);
+export async function downloadFile(
+  urlString: string,
+  filetype: "video" | "image",
+): Promise<string> {
+  console.debug(`Downloading ${filetype} '${urlString}' ...`);
 
   const url = new URL(urlString);
 
+  let subfolder: string;
+  if (filetype == "video") {
+    subfolder = VIDEO_SUBFOLDER;
+  } else if (filetype == "image") {
+    subfolder = IMAGE_SUBFOLDER;
+  } else {
+    throw new Error(`Unsupported filetype '${filetype}'`);
+  }
+
   const filename = basename(url.pathname);
-  const filepath = join(OUTPUT_DIRECTORY, VIDEO_SUBFOLDER, filename);
+  const filepath = join(OUTPUT_DIRECTORY, subfolder, filename);
 
   // noop if directory already exists, doesn't throw due to `recursive: true`
   await Deno.mkdir(dirname(filepath), { recursive: true });

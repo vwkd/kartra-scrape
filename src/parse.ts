@@ -5,7 +5,7 @@ import rehypeParse from "npm:rehype-parse";
 import rehypeRemark from "npm:rehype-remark";
 import remarkStringify from "npm:remark-stringify";
 
-import { downloadVideo, makeRequest } from "./api.ts";
+import { downloadFile, makeRequest } from "./api.ts";
 import { stringPropertiesRegex, stringPropertyRegex } from "./utils.ts";
 import { Sitemap } from "./types.ts";
 
@@ -13,6 +13,7 @@ const TITLE_SELECTOR = "head title";
 const PAGE_SELECTOR = "div.panel.panel-kartra div.panel-body";
 const SITEMAP_SELECTOR = "div.panel.panel-kartra.panel-sitemap";
 const IFRAME_SELECTOR = "iframe.video_iframe";
+const IMAGE_SELECTOR = "img";
 
 const SECTION1_SELECTOR = "div.navigation_category_divs";
 const SECTION1_NAME_SELECTOR = "h2.navigation_category_name";
@@ -60,8 +61,24 @@ export function parseTitle(html: string) {
 export async function parsePage(html: string) {
   const doc = new DOMParser().parseFromString(html, "text/html")!;
 
-  const iframes = doc.querySelectorAll(IFRAME_SELECTOR);
+  const body = doc.querySelector(PAGE_SELECTOR)!;
 
+  const images = body.querySelectorAll(IMAGE_SELECTOR);
+  for (const image of images) {
+    // todo: remove type cast once https://github.com/b-fuze/deno-dom/issues/141 is fixed
+    const image_url = (image as Element).getAttribute("src")!;
+    const image_alt = (image as Element).getAttribute("alt") || "";
+
+    const filepath = await downloadFile(image_url, "image");
+
+    const img = doc.createElement("img");
+    img.setAttribute("src", filepath);
+    img.setAttribute("alt", image_alt);
+
+    image.parentNode!.replaceChild(img, image);
+  }
+
+  const iframes = body.querySelectorAll(IFRAME_SELECTOR);
   for (const iframe of iframes) {
     // todo: remove type cast once https://github.com/b-fuze/deno-dom/issues/141 is fixed
     const iframe_url = (iframe as Element).getAttribute("src")!;
@@ -69,7 +86,7 @@ export async function parsePage(html: string) {
 
     const { name, url } = await parseVideo(video);
 
-    const filepath = await downloadVideo(url);
+    const filepath = await downloadFile(url, "video");
 
     const img = doc.createElement("img");
     img.setAttribute("src", filepath);
@@ -78,10 +95,8 @@ export async function parsePage(html: string) {
     iframe.parentNode!.replaceChild(img, iframe);
   }
 
-  const div = doc.querySelector(PAGE_SELECTOR)!;
-
   const md = await html2md
-    .process(div.outerHTML);
+    .process(body.outerHTML);
 
   return md.toString().trim();
 }
