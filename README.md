@@ -6,9 +6,11 @@ Script to scrape kartra courses
 
 ## Features
 
-- Download all pages of course
-- Save text as single markdown file with nested headers
-- Download all embedded videos
+- download all pages of course
+- download all embedded images and videos
+- cache automatically, e.g. pause and resume later, "never scrape twice", etc.
+- extract text to single markdown file with nested headers
+- note: doesn't include comments
 
 Note: The resulting markdown may have imperfections like bold text instead of headers, etc. These originate from kartra's HTML, likely due to incorrect HTML generation by a WYSIWYG editor provided to the course author.
 
