@@ -14,6 +14,17 @@ const PAGE_SELECTOR = "div.panel.panel-kartra";
 const SITEMAP_SELECTOR = "div.panel.panel-kartra.panel-sitemap";
 const IFRAME_SELECTOR = "iframe.video_iframe";
 
+const SECTION1_SELECTOR = "div.navigation_category_divs";
+const SECTION1_NAME_SELECTOR = "h2.navigation_category_name";
+
+const SECTION2_SELECTOR = "ul.navigation_first_child_ul > li.index_subcategory";
+const SECTION2_NAME_SELECTOR =
+  "div.navigation_subcategory_name div:nth-child(1) > div:nth-child(1)";
+
+const SECTION3_SELECTOR = "ul.navigation_second_child_ul > li";
+const SECTION3_NAME_SELECTOR = "span.navigation_second_child_name";
+const SECTION3_URL_SELECTOR = "a.js_open_post";
+
 const html2md = unified()
   .use(rehypeParse, { fragment: true })
   .use(rehypeRemark)
@@ -81,31 +92,69 @@ export async function parsePage(html: string) {
  * @param html html string of sitemap
  * @returns sitemap object
  */
+// todo: generalize to more sections
 export function parseSitemap(html: string): Sitemap {
   const doc = new DOMParser().parseFromString(html, "text/html")!;
 
-  const div = doc.querySelector(SITEMAP_SELECTOR);
+  const div = doc.querySelector(SITEMAP_SELECTOR)!;
 
-  // todo: tmp
-  return [
-    {
-      name: "First Section",
-      children: [
-        {
-          name: "First Subsection",
-          children: [
-            {
-              name: "First Page",
-              url: "https://foo.bar.com/post/42",
-            },
-            // ...
-          ],
-        },
-        // ...
-      ],
-    },
-    // ...
-  ];
+  const sitemap = [];
+
+  const section1s = div.querySelectorAll(SECTION1_SELECTOR);
+
+  for (const section1 of section1s) {
+    // todo: remove type cast once https://github.com/b-fuze/deno-dom/issues/141 is fixed
+
+    const children1 = [];
+
+    const section1_name = (section1 as Element).querySelector(
+      SECTION1_NAME_SELECTOR,
+    )!.textContent.trim();
+
+    const section2s = (section1 as Element).querySelectorAll(SECTION2_SELECTOR);
+
+    for (const section2 of section2s) {
+      // todo: remove type cast once https://github.com/b-fuze/deno-dom/issues/141 is fixed
+
+      const children2 = [];
+
+      const section2_name = (section2 as Element).querySelector(
+        SECTION2_NAME_SELECTOR,
+      )!.textContent.trim();
+
+      const section3s = (section2 as Element).querySelectorAll(
+        SECTION3_SELECTOR,
+      );
+
+      for (const section3 of section3s) {
+        // todo: remove type cast once https://github.com/b-fuze/deno-dom/issues/141 is fixed
+
+        const section3_name = (section3 as Element).querySelector(
+          SECTION3_NAME_SELECTOR,
+        )!.textContent.trim();
+        const section3_url = (section3 as Element).querySelector(
+          SECTION3_URL_SELECTOR,
+        )!.getAttribute("href")!;
+
+        children2.push({
+          name: section3_name,
+          url: section3_url,
+        });
+      }
+
+      children1.push({
+        name: section2_name,
+        children: children2,
+      });
+    }
+
+    sitemap.push({
+      name: section1_name,
+      children: children1,
+    });
+  }
+
+  return sitemap;
 }
 
 /**
