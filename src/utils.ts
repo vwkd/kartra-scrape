@@ -1,9 +1,9 @@
 // note: one extra backslash for JavaScript string
-const colon_re = "\\s*:\\s*";
+const COLON_RE = "\\s*:\\s*";
 // note: two extra backslashes for JavaScript string, one for regex
-const value_re = `((?:".*(?!\\\\")")|(?:'.*(?!\\\\')'))`;
+const VALUE_RE = `((?:".*(?!\\\\")")|(?:'.*(?!\\\\')'))`;
 // note: one extra backslash for JavaScript string
-const comma_re = "\\s*,\\n*\\s*";
+const COMMA_RE = "\\s*,\\n*\\s*";
 
 /**
  * Create regex that matches first string property
@@ -15,7 +15,7 @@ const comma_re = "\\s*,\\n*\\s*";
  * @returns regex
  */
 export function stringPropertyRegex(key: string) {
-  return new RegExp(`${key}${colon_re}${value_re}`);
+  return new RegExp(`${key}${COLON_RE}${VALUE_RE}`);
 }
 
 /**
@@ -31,6 +31,6 @@ export function stringPropertyRegex(key: string) {
  */
 export function stringPropertiesRegex(...keys: string[]) {
   return new RegExp(
-    keys.map((key) => `${key}${colon_re}${value_re}`).join(comma_re),
+    keys.map((key) => `${key}${COLON_RE}${VALUE_RE}`).join(COMMA_RE),
   );
 }
