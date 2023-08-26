@@ -75,7 +75,7 @@ export async function makeRequest(urlString: string): Promise<string> {
  * @param urlString
  * @returns filepath of downloaded file
  */
-export async function downloadVideo(urlString: string): string {
+export async function downloadVideo(urlString: string): Promise<string> {
   console.debug(`Downloading video url '${urlString}' ...`);
 
   const url = new URL(urlString);
@@ -93,7 +93,7 @@ export async function downloadVideo(urlString: string): string {
     })
   ) {
     console.debug(`Skip download already exists`);
-    return;
+    return filepath;
   }
 
   const res = await fetch(url, {
@@ -101,7 +101,7 @@ export async function downloadVideo(urlString: string): string {
   });
 
   if (res.ok) {
-    await Deno.writeFile(filepath, res.body);
+    await Deno.writeFile(filepath, res.body!);
 
     return filepath;
   } else {

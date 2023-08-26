@@ -46,7 +46,7 @@ const html2md = unified()
 export function parseTitle(html: string) {
   const doc = new DOMParser().parseFromString(html, "text/html")!;
 
-  const title = doc.querySelector(TITLE_SELECTOR);
+  const title = doc.querySelector(TITLE_SELECTOR)!;
 
   return title.textContent;
 }
@@ -64,7 +64,7 @@ export async function parsePage(html: string) {
 
   for (const iframe of iframes) {
     // todo: remove type cast once https://github.com/b-fuze/deno-dom/issues/141 is fixed
-    const iframe_url = (iframe as Element).getAttribute("src");
+    const iframe_url = (iframe as Element).getAttribute("src")!;
     const video = await makeRequest(iframe_url);
 
     const { name, url } = await parseVideo(video);
@@ -75,10 +75,10 @@ export async function parsePage(html: string) {
     img.setAttribute("src", filepath);
     img.setAttribute("alt", name);
 
-    iframe.parentNode.replaceChild(img, iframe);
+    iframe.parentNode!.replaceChild(img, iframe);
   }
 
-  const div = doc.querySelector(PAGE_SELECTOR);
+  const div = doc.querySelector(PAGE_SELECTOR)!;
 
   const md = await html2md
     .process(div.outerHTML);
@@ -173,8 +173,8 @@ export function parseVideo(html: string): { name: string; url: string } {
   // const re_download_url = stringPropertyRegex("video_download_url");
   // const re_transcript_download_url = stringPropertyRegex("transcript_download_url");
 
-  const name = eval(html.match(re_name)?.at(1));
-  const url = eval(html.match(re_source)?.at(1));
+  const name = eval(html.match(re_name)?.at(1)!);
+  const url = eval(html.match(re_source)?.at(1)!);
   // const type = eval(html.match(re_source)?.at(2));
   // const download_url = eval(html.match(re_download_url)?.at(1));
 
