@@ -5,7 +5,6 @@ import rehypeParse from "npm:rehype-parse";
 import rehypeRemark from "npm:rehype-remark";
 import remarkStringify from "npm:remark-stringify";
 
-import { join } from "$std/path/join.ts";
 import { downloadVideo, makeRequestCrossOrigin } from "./api.ts";
 import { stringPropertiesRegex, stringPropertyRegex } from "./utils.ts";
 import { Sitemap } from "./types.ts";
@@ -13,12 +12,6 @@ import { Sitemap } from "./types.ts";
 const PAGE_SELECTOR = "div.panel.panel-kartra";
 const SITEMAP_SELECTOR = "div.panel.panel-kartra.panel-sitemap";
 const IFRAME_SELECTOR = "iframe.video_iframe";
-
-const OUTPUT_DIRECTORY = "out";
-const VIDEO_SUBFOLDER = "video";
-
-// noop if directory already exists, doesn't throw due to `recursive: true`
-await Deno.mkdir(join(OUTPUT_DIRECTORY, VIDEO_SUBFOLDER), { recursive: true });
 
 const html2md = unified()
   .use(rehypeParse, { fragment: true })
@@ -50,17 +43,13 @@ export async function parsePage(html: string) {
 
     const { name, url } = await parseVideo(video);
 
-    const filename = new URL(url).pathname.split("/").at(-1);
+    const filepath = await downloadVideo(url);
 
     const img = doc.createElement("img");
-    img.setAttribute("src", join(VIDEO_SUBFOLDER, filename));
+    img.setAttribute("src", filepath);
     img.setAttribute("alt", name);
 
     iframe.parentNode.replaceChild(img, iframe);
-
-    const filepath = join(OUTPUT_DIRECTORY, VIDEO_SUBFOLDER, filename);
-
-    await downloadVideo(url, filepath);
   }
 
   const div = doc.querySelector(PAGE_SELECTOR);

@@ -1,10 +1,13 @@
 import "$std/dotenv/load.ts";
 import { join } from "$std/path/join.ts";
 import { dirname } from "$std/path/dirname.ts";
+import { basename } from "$std/path/basename.ts";
 import { exists } from "$std/fs/exists.ts";
 
 const ACCESS_TOKEN_NAME = "lead_logged_in";
 
+const OUTPUT_DIRECTORY = "out";
+const VIDEO_SUBFOLDER = "video";
 const TMP_DIRECTORY = "tmp";
 
 const COURSE_URL = Deno.env.get("COURSE_URL");
@@ -115,9 +118,20 @@ export async function makeRequestCrossOrigin(
  *
  * - skips if already exists
  * - beware: doesn't check if existing file is valid, e.g. incomplete!
+ *
+ * @param urlString
+ * @returns filepath of downloaded file
  */
-export async function downloadVideo(url: string | URL, filepath: string) {
-  console.debug(`Downloading video '${filepath}' ...`);
+export async function downloadVideo(urlString: string): string {
+  console.debug(`Downloading video url '${urlString}' ...`);
+
+  const url = new URL(urlString);
+
+  const filename = basename(url.pathname);
+  const filepath = join(OUTPUT_DIRECTORY, VIDEO_SUBFOLDER, filename);
+
+  // noop if directory already exists, doesn't throw due to `recursive: true`
+  await Deno.mkdir(dirname(filepath), { recursive: true });
 
   if (
     await exists(filepath, {
@@ -134,7 +148,9 @@ export async function downloadVideo(url: string | URL, filepath: string) {
   });
 
   if (res.ok) {
-    return Deno.writeFile(filepath, res.body);
+    await Deno.writeFile(filepath, res.body);
+
+    return filepath;
   } else {
     throw new Error(`Received error ${res.status} ${res.statusText}`);
   }
