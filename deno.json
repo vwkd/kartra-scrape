@@ -1,0 +1,12 @@
+{
+  "fmt": {
+    "exclude": ["**/*.md"]
+  },
+  "tasks": {
+    "run": "deno run --allow-env --allow-net --allow-read --allow-write --allow-sys src/main.ts"
+  },
+  "imports": {
+    "$std/": "https://deno.land/std@0.200.0/",
+    "deno_dom": "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts"
+  }
+}
