@@ -1,6 +1,6 @@
 import "$std/dotenv/load.ts";
 
-import { makeRequest } from "./api.ts";
+import { makeRequestSameOrigin } from "./api.ts";
 import { parsePage, parseSitemap } from "./parse.ts";
 import { Sitemap } from "./types.ts";
 
@@ -13,7 +13,7 @@ const SITEMAP_PATH = "0";
  * @returns markdown of index page
  */
 async function getIndex(): Promise<string> {
-  const index = await makeRequest(INDEX_PATH);
+  const index = await makeRequestSameOrigin(INDEX_PATH);
 
   const page = await parsePage(index);
 
@@ -26,7 +26,7 @@ async function getIndex(): Promise<string> {
  * @returns sitemap object
  */
 async function getSitemap(): Promise<Sitemap> {
-  const sitemap_html = await makeRequest(SITEMAP_PATH);
+  const sitemap_html = await makeRequestSameOrigin(SITEMAP_PATH);
 
   const sitemap = parseSitemap(sitemap_html);
 

@@ -6,7 +6,7 @@ import rehypeRemark from "npm:rehype-remark";
 import remarkStringify from "npm:remark-stringify";
 
 import { join } from "$std/path/join.ts";
-import { downloadVideo, makeRequest } from "./api.ts";
+import { downloadVideo, makeRequestCrossOrigin } from "./api.ts";
 import { stringPropertiesRegex, stringPropertyRegex } from "./utils.ts";
 import { Sitemap } from "./types.ts";
 
@@ -46,7 +46,7 @@ export async function parsePage(html: string) {
   for (const iframe of iframes) {
     // todo: remove type cast once https://github.com/b-fuze/deno-dom/issues/141 is fixed
     const iframe_url = (iframe as Element).getAttribute("src");
-    const video = await makeRequest(iframe_url);
+    const video = await makeRequestCrossOrigin(iframe_url);
 
     const { name, url } = await parseVideo(video);
 
