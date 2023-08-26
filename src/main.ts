@@ -18,6 +18,8 @@ const MARKDOWN_FILENAME = "text.md";
  * @returns markdown of title and index page
  */
 async function getIndex(): Promise<string> {
+  console.debug(`Get index...`);
+
   const index = await makeRequestSameOrigin(INDEX_PATH);
 
   const title = parseTitle(index);
@@ -33,6 +35,8 @@ async function getIndex(): Promise<string> {
  * @returns sitemap object
  */
 async function getSitemap(): Promise<Sitemap> {
+  console.debug(`Get sitemap...`);
+
   const sitemap_html = await makeRequestSameOrigin(SITEMAP_PATH);
 
   const sitemap = parseSitemap(sitemap_html);
@@ -47,6 +51,8 @@ async function getSitemap(): Promise<Sitemap> {
  * @returns markdown of page
  */
 async function getPage(path: string): Promise<string> {
+  console.debug(`Get page...`);
+
   const index = await makeRequestSameOrigin(path);
 
   const md = await parsePage(index);
@@ -56,6 +62,22 @@ async function getPage(path: string): Promise<string> {
 
 /**
  * Get pages
+ *
+ * @param sitemap sitemap
+ * @returns markdown of pages
+ */
+async function getPages(sitemap: Sitemap) {
+  console.debug(`Get pages...`);
+
+  const result = { text: "" };
+
+  await getPagesTree(sitemap, result);
+
+  return result.text;
+}
+
+/**
+ * Get tree of pages
  *
  * traverses sitemap tree and builds up markdown
  *
@@ -67,7 +89,11 @@ async function getPage(path: string): Promise<string> {
  * @param result result object
  * @param level header level, 2-6
  */
-async function getPages(nodes: Sitemap, result: { text: string }, level = 2) {
+async function getPagesTree(
+  nodes: Sitemap,
+  result: { text: string },
+  level = 2,
+) {
   if (level > 6) {
     throw new Error(`Level shouldn't exceed 6!`);
   }
@@ -75,7 +101,7 @@ async function getPages(nodes: Sitemap, result: { text: string }, level = 2) {
   for (const node of nodes) {
     if (isSection(node)) {
       result.text += `\n\n${"#".repeat(level)} ${node.name}`;
-      await getPages(node.children, result, level + 1);
+      await getPagesTree(node.children, result, level + 1);
     } else {
       const md = await getPage(node.url);
       result.text += `\n\n${"#".repeat(level)} ${node.name}\n\n${md}`;
@@ -84,15 +110,15 @@ async function getPages(nodes: Sitemap, result: { text: string }, level = 2) {
 }
 
 if (import.meta.main) {
+  const filepath = join(OUTPUT_DIRECTORY, MARKDOWN_FILENAME);
+
   const md1 = await getIndex();
 
   const sitemap = await getSitemap();
 
-  const result = { text: md1 };
+  const mdRest = await getPages(sitemap);
 
-  await getPages(sitemap, result);
+  const md = `${md1}\n\n${mdRest}`;
 
-  const filepath = join(OUTPUT_DIRECTORY, MARKDOWN_FILENAME);
-
-  await Deno.writeTextFile(filepath, result.text);
+  await Deno.writeTextFile(filepath, md);
 }
